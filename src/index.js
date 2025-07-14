@@ -1,12 +1,16 @@
 import express from "express";
 import { checkRateLimit } from "./limiter.js";
-import { healthHandler } from "./health.js";
+import authRouter from "./routes/authRoutes.js"
+import healthRouter from "./routes/healthRoutes.js";
 import config from "./config.js";
+import { connectMongo } from "./models/db.js";
 
 const app = express();
 app.use(express.json());
 
-app.get("/healthz", healthHandler);
+app.use("/auth", authRouter);
+app.use("/healthz", healthRouter)
+
 
 app.post("/check", async (req, res) => {
   try {
@@ -23,6 +27,11 @@ app.post("/check", async (req, res) => {
   }
 });
 
-app.listen(config.server.port, () => {
-  console.log(`Server running on port ${config.server.port}`);
-});
+async function start() {
+    await connectMongo(config.db.mongoUrl);
+    app.listen(config.server.port, () => {
+      console.log(`Server running on port ${config.server.port}`);
+    });
+}
+
+start();
