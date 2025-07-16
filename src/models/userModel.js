@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+export { User };
+
 export async function createUser(email, passwordHash) {
   return await User.create({ email, passwordHash });
 }
