@@ -1,7 +1,16 @@
+// models/RateLimitAlgorithm.js
 import mongoose from 'mongoose';
 
-const algorithmSchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true }
+const rateLimitAlgorithmSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    enum: ['token_bucket', 'fixed_window', 'sliding_window'],
+  },
+  description: {
+    type: String,
+  },
 });
 
-export const Algorithm = mongoose.model('Algorithm', algorithmSchema);
+export const RateLimitAlgorithm = mongoose.model('RateLimitAlgorithm', rateLimitAlgorithmSchema);

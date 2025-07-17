@@ -1,22 +1,24 @@
 import express from "express";
 import { checkRateLimit } from "./limiter.js";
 import authRouter from "./routes/authRoutes.js"
-import healthRouter from "./routes/healthRoutes.js";
+// import healthRouter from "./routes/healthRoutes.js";
 import config from "./config.js";
 import { connectMongo } from "./models/db.js";
 import apiRegistrationRoutes from "./routes/apiRegistrationRoutes.js";
-import { proxyRequest } from "./services/proxyService.js";
-import { authenticateToken } from "./middleware/authMiddleWare.js";
+// import { proxyRequest } from "./services/proxyService.js";
+// import { authenticateToken } from "./middleware/authMiddleWare.js";
+import algorithmRoutes from "./routes/algorithmRoutes.js";
 
 const app = express();
 app.use(express.json());
 
 app.use("/auth", authRouter);
-app.use("/healthz", healthRouter);
+// app.use("/healthz", healthRouter);
 app.use('/api', apiRegistrationRoutes);
+app.use('/algorithms', algorithmRoutes);
 
 // Add proxy route
-app.post('/proxy', authenticateToken, proxyRequest);
+// app.post('/proxy', authenticateToken, proxyRequest);
 
 
 app.post("/check", async (req, res) => {
