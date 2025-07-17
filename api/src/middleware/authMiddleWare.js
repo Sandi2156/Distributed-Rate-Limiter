@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { User } from '../models/userModel.js';
-import config from '../config.js';
+import config from '../utils/config.js';
 
 export async function authenticateToken(req, res, next) {
 

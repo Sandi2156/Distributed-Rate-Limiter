@@ -1,7 +1,6 @@
 import express from "express";
 import authRouter from "./routes/authRoutes.js"
-// import healthRouter from "./routes/healthRoutes.js";
-import config from "./config.js";
+import config from "./utils/config.js";
 import { connectMongo } from "./models/db.js";
 import apiRegistrationRoutes from "./routes/apiRegistrationRoutes.js";
 import algorithmRoutes from "./routes/algorithmRoutes.js";
@@ -11,7 +10,6 @@ const app = express();
 app.use(express.json());
 
 app.use("/auth", authRouter);
-// app.use("/healthz", healthRouter);
 app.use('/api', apiRegistrationRoutes);
 app.use('/algorithms', algorithmRoutes);
 app.use('/proxy', proxyRoutes);
