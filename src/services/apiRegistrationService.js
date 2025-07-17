@@ -5,6 +5,7 @@ import { RateLimitAlgorithm } from '../models/algorithmModel.js';
 export async function registerApi(req, res) {
   try {
     const { apiUrl, name, algorithmId, config } = req.body;
+    console.log(req.user._id);
 
     if (!apiUrl || !name || !algorithmId) {
       return res.status(400).json({ message: 'apiUrl, name, and algorithmId are required' });
@@ -25,6 +26,7 @@ export async function registerApi(req, res) {
     if (existing) {
       return res.status(409).json({ message: 'API already registered by this user' });
     }
+
 
     // Register the API
     const api = new Api({

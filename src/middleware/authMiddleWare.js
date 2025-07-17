@@ -3,7 +3,6 @@ import { User } from '../models/userModel.js';
 import config from '../config.js';
 
 export async function authenticateToken(req, res, next) {
-  next(); // TODO: Remove this after testing
 
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -14,7 +13,7 @@ export async function authenticateToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
-    req.user = await User.findById(decoded.id).select('-password');
+    req.user = await User.findById(decoded.userId);
     if (!req.user) {
       return res.status(401).json({ message: 'User not found' });
     }
