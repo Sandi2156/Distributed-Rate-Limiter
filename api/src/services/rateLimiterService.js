@@ -68,7 +68,6 @@ export async function slidingWindowCheck(userId, apiId, config) {
 
 // Central Rate Limit Dispatcher
 export async function rateLimitCheck(userId, api, config) {
-  config = JSON.parse(config);
   const algorithm = api.rateLimitAlgorithm?.name;
 
   switch (algorithm) {

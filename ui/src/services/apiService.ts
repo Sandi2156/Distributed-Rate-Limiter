@@ -1,13 +1,27 @@
 import { API_CONFIG } from '@/utils/config';
 
 export interface ApiRegistration {
-  id: string;
+  _id: string;
   name: string;
-  url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  rateLimit: number;
-  createdAt: string;
-  updatedAt: string;
+  endpointUrl: string;
+  rateLimitAlgorithm: {
+    name: string;
+    _id: string;
+    description?: string;
+  };
+  config?: {
+    windowSeconds?: number;
+    requests?: number;
+  };
+  createdAt?: string;
+}
+
+export interface ApiRegistrationResponse {
+  registrations: ApiRegistration[];
+}
+
+export interface ApiRegistrationDetailResponse {
+  registration: ApiRegistration;
 }
 
 export interface CreateApiRequest {
@@ -33,7 +47,7 @@ class ApiService {
     };
   }
 
-  async getApis(): Promise<ApiRegistration[]> {
+  async getApis(): Promise<ApiRegistrationResponse> {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/api/registrations`, {
         method: 'GET',
@@ -42,6 +56,23 @@ class ApiService {
 
       if (!response.ok) {
         throw new Error('Failed to fetch APIs');
+      }
+
+      return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getApiDetails(id: string): Promise<ApiRegistrationDetailResponse> {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/registrations/${id}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch API details');
       }
 
       return await response.json();

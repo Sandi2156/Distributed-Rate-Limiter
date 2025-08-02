@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { algorithmService, type Algorithm, type AlgorithmResponse } from '@/services/algorithmService';
-import type { CreateApiRequest } from '@/services/apiService';
+import type { CreateApiRequest, ApiRegistration } from '@/services/apiService';
 import { Loader2 } from 'lucide-react';
 
 const apiSchema = z.object({
@@ -40,9 +40,10 @@ interface ApiRegistrationFormProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CreateApiRequest) => Promise<void>;
   isLoading?: boolean;
+  editingApi?: ApiRegistration;
 }
 
-export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLoading = false }: ApiRegistrationFormProps) {
+export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLoading = false, editingApi }: ApiRegistrationFormProps) {
   const [algorithms, setAlgorithms] = useState<Algorithm[]>();
   const [isLoadingAlgorithms, setIsLoadingAlgorithms] = useState(false);
   const [selectedAlgorithm, setSelectedAlgorithm] = useState<Algorithm | undefined>();
@@ -78,13 +79,28 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
     },
   });
 
-  // Reset form when dialog opens/closes
+  // Reset form when dialog opens/closes or when editingApi changes
   useEffect(() => {
     if (!open) {
       form.reset();
       setSelectedAlgorithm(undefined);
+    } else if (editingApi) {
+      // Populate form with editing data
+      form.reset({
+        name: editingApi.name,
+        apiUrl: editingApi.endpointUrl,
+        algorithmId: editingApi.rateLimitAlgorithm._id,
+        windowSeconds: editingApi.config?.windowSeconds || 60,
+        requests: editingApi.config?.requests || 100,
+      });
+      // Set selected algorithm
+      setSelectedAlgorithm({
+        _id: editingApi.rateLimitAlgorithm._id,
+        name: editingApi.rateLimitAlgorithm.name,
+        description: editingApi.rateLimitAlgorithm.description || '',
+      });
     }
-  }, [open, form]);
+  }, [open, form, editingApi]);
 
   // Update form when algorithm changes
   useEffect(() => {
@@ -171,9 +187,9 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Register New API</DialogTitle>
+          <DialogTitle>{editingApi ? 'Edit API' : 'Register New API'}</DialogTitle>
           <DialogDescription>
-            Register a new API with rate limiting configuration.
+            {editingApi ? 'Update your API registration details.' : 'Register a new API with rate limiting configuration.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -259,7 +275,7 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting || isLoading}>
-                  {isSubmitting ? 'Registering...' : 'Register API'}
+                  {isSubmitting ? (editingApi ? 'Updating...' : 'Registering...') : (editingApi ? 'Update API' : 'Register API')}
                 </Button>
               </DialogFooter>
             </form>

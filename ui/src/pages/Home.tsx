@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '@/services/authService';
 import { apiService, type ApiRegistration } from '@/services/apiService';
 import ApiRegistrationForm from '@/components/ApiRegistrationForm';
-import { Plus, Edit, X, Globe, Activity } from 'lucide-react';
+import { Plus, Edit, X, Globe, Activity, LogIn } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -14,16 +14,31 @@ export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingApi, setEditingApi] = useState<ApiRegistration | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // fetchApis();
+    checkAuthStatus();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchApis();
+    }
+  }, [isAuthenticated]);
+
+  const checkAuthStatus = () => {
+    const authenticated = authService.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    if (!authenticated) {
+      setIsLoading(false);
+    }
+  };
 
   const fetchApis = async () => {
     try {
       setIsLoading(true);
       const data = await apiService.getApis();
-      setApis(data);
+      setApis(data.registrations);
     } catch (error) {
       console.error('Failed to fetch APIs:', error);
     } finally {
@@ -48,7 +63,7 @@ export default function Home() {
     
     try {
       setIsSubmitting(true);
-      await apiService.updateApi(editingApi.id, data);
+      await apiService.updateApi(editingApi._id, data);
       await fetchApis();
       setEditingApi(undefined);
     } catch (error: any) {
@@ -69,9 +84,18 @@ export default function Home() {
     }
   };
 
-  const handleEditApi = (api: ApiRegistration) => {
-    setEditingApi(api);
-    setIsFormOpen(true);
+  const handleEditApi = async (api: ApiRegistration) => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.getApiDetails(api._id);
+      setEditingApi(response.registration);
+      setIsFormOpen(true);
+    } catch (error: any) {
+      console.error('Failed to fetch API details:', error);
+      alert(error.message || 'Failed to fetch API details');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFormSubmit = async (data: any) => {
@@ -80,11 +104,27 @@ export default function Home() {
     } else {
       await handleCreateApi(data);
     }
+    // Clear editing state after submission
+    setEditingApi(undefined);
   };
 
   const handleLogout = () => {
     authService.logout();
+    setIsAuthenticated(false);
+    setApis([]);
+  };
+
+  const handleLogin = () => {
     navigate('/login');
+  };
+
+  const handleRegisterApi = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setEditingApi(undefined);
+    setIsFormOpen(true);
   };
 
   return (
@@ -93,26 +133,54 @@ export default function Home() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">API Management</h1>
           <div className="flex gap-2">
-            <Button 
-              onClick={() => {
-                setEditingApi(undefined);
-                setIsFormOpen(true);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Register API
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button 
+                  onClick={handleRegisterApi}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Register API
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={handleLogin}
+                className="flex items-center gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                Login
+              </Button>
+            )}
           </div>
         </div>
 
-        {isLoading ? (
+        {!isAuthenticated ? (
+          <Card>
+            <CardContent className="flex items-center justify-center py-12">
+              <div className="text-center flex flex-col items-center">
+                <Globe className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Welcome to API Management</h3>
+                <p className="text-gray-500 mb-6 max-w-md">
+                  Please log in to manage your API registrations and rate limiting configurations.
+                </p>
+                <Button 
+                  onClick={handleLogin}
+                  className="flex items-center gap-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Login to Continue
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : isLoading ? (
           <Card>
             <CardContent className="flex items-center justify-center py-8">
               <div className="text-center">
@@ -124,17 +192,14 @@ export default function Home() {
         ) : apis.length === 0 ? (
           <Card>
             <CardContent className="flex items-center justify-center py-12">
-              <div className="text-center">
+              <div className="text-center flex flex-col items-center">
                 <Globe className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No APIs Registered</h3>
-                <p className="text-gray-500 mb-4">
+                <p className="text-gray-500 mb-6 max-w-md">
                   Get started by registering your first API for rate limiting.
                 </p>
                 <Button 
-                  onClick={() => {
-                    setEditingApi(undefined);
-                    setIsFormOpen(true);
-                  }}
+                  onClick={handleRegisterApi}
                   className="flex items-center gap-2"
                 >
                   <Plus className="h-4 w-4" />
@@ -144,47 +209,43 @@ export default function Home() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {apis.map((api) => (
-              <Card key={api.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{api.name}</h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          api.method === 'GET' ? 'bg-green-100 text-green-800' :
-                          api.method === 'POST' ? 'bg-blue-100 text-blue-800' :
-                          api.method === 'PUT' ? 'bg-yellow-100 text-yellow-800' :
-                          api.method === 'DELETE' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {api.method}
-                        </span>
+              <Card key={api._id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">{api.name}</h3>
                       </div>
-                      <p className="text-gray-600 text-sm mb-2">{api.url}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>Rate Limit: {api.rateLimit} req/min</span>
-                        <span>Created: {new Date(api.createdAt).toLocaleDateString()}</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">URL:</span>
+                          <p className="text-gray-700 text-sm truncate">{api.endpointUrl}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Algorithm:</span>
+                          <span className="text-gray-700 text-sm">{api.rateLimitAlgorithm?.name || 'Unknown'}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditApi(api)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 h-8 px-3"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3.5 w-3.5" />
                         Edit
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteApi(api.id)}
-                        className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteApi(api._id)}
+                        className="flex items-center gap-1 h-8 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3.5 w-3.5" />
                         Delete
                       </Button>
                     </div>
@@ -200,6 +261,7 @@ export default function Home() {
           onOpenChange={setIsFormOpen}
           onSubmit={handleFormSubmit}
           isLoading={isSubmitting}
+          editingApi={editingApi}
         />
       </div>
     </div>

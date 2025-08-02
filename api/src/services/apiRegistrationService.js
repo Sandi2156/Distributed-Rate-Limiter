@@ -39,7 +39,7 @@ export async function registerApi(req, res) {
 
     await api.save();
 
-    return res.status(201).json({ message: 'API registered successfully', api });
+    return res.status(201).json({ message: 'API registered successfully' });
 
   } catch (err) {
     console.error('Register API error:', err);
@@ -50,7 +50,8 @@ export async function registerApi(req, res) {
 export async function getUserRegistrations(req, res) {
   try {
     const registrations = await Api.find({ user: req.user._id })
-      .populate('rateLimitAlgorithm', 'name description') // populate algorithm info
+      .select('_id name endpointUrl rateLimitAlgorithm')
+      .populate('rateLimitAlgorithm', 'name description')
       .lean();
 
     return res.status(200).json({ registrations });
@@ -59,6 +60,29 @@ export async function getUserRegistrations(req, res) {
     return res.status(500).json({ message: 'Server error' });
   }
 }
+
+export async function getRegistrationById(req, res) {
+  try {
+    const { id } = req.params;
+
+    const registration = await Api.findOne({
+      _id: id,
+      user: req.user._id
+    })
+      .populate('rateLimitAlgorithm', 'name description')
+      .lean();
+
+    if (!registration) {
+      return res.status(404).json({ message: 'API registration not found or not owned by user' });
+    }
+
+    return res.status(200).json({ registration });
+  } catch (err) {
+    console.error('Get Registration By ID error:', err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+}
+
 
 
 export async function deleteRegistration(req, res) {
@@ -131,8 +155,7 @@ export async function updateRegistration(req, res) {
     ).populate('rateLimitAlgorithm', 'name description');
 
     return res.status(200).json({ 
-      message: 'API updated successfully', 
-      api: updatedApi 
+      message: 'API updated successfully'
     });
 
   } catch (err) {
