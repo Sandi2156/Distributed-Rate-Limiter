@@ -46,11 +46,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4">
+      <Card className="w-full max-w-md shadow-2xl bg-gray-800/80 border-gray-700 backdrop-blur-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-white">Welcome back</CardTitle>
+          <CardDescription className="text-center text-gray-300">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
@@ -121,8 +121,8 @@ export default function Login() {
           </Form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <Link to="/register" className="text-primary hover:underline font-medium">
+            <span className="text-gray-400">Don't have an account? </span>
+            <Link to="/register" className="text-blue-400 hover:text-blue-300 hover:underline font-medium">
               Sign up
             </Link>
           </div>

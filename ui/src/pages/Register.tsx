@@ -53,11 +53,11 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4">
+      <Card className="w-full max-w-md shadow-2xl bg-gray-800/80 border-gray-700 backdrop-blur-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create account</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-white">Create account</CardTitle>
+          <CardDescription className="text-center text-gray-300">
             Enter your details to create your account
           </CardDescription>
         </CardHeader>
@@ -163,8 +163,8 @@ export default function Register() {
           </Form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Already have an account? </span>
-            <Link to="/login" className="text-primary hover:underline font-medium">
+            <span className="text-gray-400">Already have an account? </span>
+            <Link to="/login" className="text-blue-400 hover:text-blue-300 hover:underline font-medium">
               Sign in
             </Link>
           </div>
