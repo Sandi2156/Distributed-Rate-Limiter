@@ -13,6 +13,8 @@ export async function handleProxy(req, res) {
 
     const api = await Api.findOne({ user: req.user._id, endpointUrl: targetUrl }).populate('rateLimitAlgorithm');
 
+    console.log(api);
+
     if (!api) {
       return res.status(404).json({ message: 'API not registered for this user' });
     }
@@ -23,6 +25,7 @@ export async function handleProxy(req, res) {
     }
 
     // Forward the request
+    // TODO: Add a way to dynamically select the method (GET, POST, PUT, DELETE)
     const forwardRes = await axios.post(targetUrl, targetUrlBody, {
       headers: targetUrlHeaders || {},
     });

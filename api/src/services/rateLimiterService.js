@@ -3,6 +3,7 @@ import redisClient from '../utils/redisClient.js';
 
 // Token Bucket Algorithm
 export async function tokenBucketCheck(userId, apiId, config) {
+  
   const key = `ratelimit:token:${userId}:${apiId}`;
   const now = Math.floor(Date.now() / 1000);
   const refillRate = config.refillRate || 1; // tokens per second
@@ -29,10 +30,11 @@ export async function tokenBucketCheck(userId, apiId, config) {
 
 // Fixed Window Algorithm
 export async function fixedWindowCheck(userId, apiId, config) {
+
   const windowSeconds = config.windowSeconds || 60;
   const limit = config.requests || 10;
 
-  const windowKey = `ratelimit:fixed:${userId}:${apiId}:${Math.floor(Date.now() / 1000 / windowSeconds)}`;
+  const windowKey = `ratelimit:fixed:${userId}:${apiId}`;
 
   const currentCount = await redisClient.incr(windowKey);
   if (currentCount === 1) {
@@ -66,6 +68,7 @@ export async function slidingWindowCheck(userId, apiId, config) {
 
 // Central Rate Limit Dispatcher
 export async function rateLimitCheck(userId, api, config) {
+  config = JSON.parse(config);
   const algorithm = api.rateLimitAlgorithm?.name;
 
   switch (algorithm) {
