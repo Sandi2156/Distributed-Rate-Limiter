@@ -144,7 +144,7 @@ export default function Home() {
   return (
     <>
       <style>{fadeInUpAnimation}</style>
-            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
+            <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl"></div>
@@ -152,7 +152,7 @@ export default function Home() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-full blur-3xl"></div>
         </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto p-6">
+      <div className="relative z-10 w-full h-full p-6">
         {/* Header with enhanced styling */}
         <div className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
