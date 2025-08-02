@@ -4,6 +4,6 @@ import { listAlgorithms } from '../controllers/algorithmController.js';
 
 const router = express.Router();
 
-router.get('/algorithms', listAlgorithms);
+router.get('/', listAlgorithms);
 
 export default router;
