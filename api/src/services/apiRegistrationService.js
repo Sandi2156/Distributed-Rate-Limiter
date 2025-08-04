@@ -1,32 +1,38 @@
 // src/controllers/apiRegistrationController.js
-import { Api } from '../models/apiModel.js';
-import { RateLimitAlgorithm } from '../models/algorithmModel.js';
+import { Api } from "../models/apiModel.js";
+import { RateLimitAlgorithm } from "../models/algorithmModel.js";
 
 export async function registerApi(req, res) {
   try {
     const { apiUrl, name, algorithmId, config } = req.body;
-    console.log(req.user._id);
 
     if (!apiUrl || !name || !algorithmId) {
-      return res.status(400).json({ message: 'apiUrl, name, and algorithmId are required' });
+      return res
+        .status(400)
+        .json({ message: "apiUrl, name, and algorithmId are required" });
     }
 
     // Validate algorithm
     const algorithm = await RateLimitAlgorithm.findById(algorithmId);
     if (!algorithm) {
-      return res.status(404).json({ message: 'Invalid algorithmId: Rate limiting algorithm not found' });
+      return res
+        .status(404)
+        .json({
+          message: "Invalid algorithmId: Rate limiting algorithm not found",
+        });
     }
 
     // Check if API already registered by this user
     const existing = await Api.findOne({
       user: req.user._id,
-      endpointUrl: apiUrl
+      endpointUrl: apiUrl,
     });
 
     if (existing) {
-      return res.status(409).json({ message: 'API already registered by this user' });
+      return res
+        .status(409)
+        .json({ message: "API already registered by this user" });
     }
-
 
     // Register the API
     const api = new Api({
@@ -34,30 +40,29 @@ export async function registerApi(req, res) {
       name,
       endpointUrl: apiUrl,
       rateLimitAlgorithm: algorithm._id,
-      config: config || {}
+      config: config || {},
     });
 
     await api.save();
 
-    return res.status(201).json({ message: 'API registered successfully' });
-
+    return res.status(201).json({ message: "API registered successfully" });
   } catch (err) {
-    console.error('Register API error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error("Register API error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 }
 
 export async function getUserRegistrations(req, res) {
   try {
     const registrations = await Api.find({ user: req.user._id })
-      .select('_id name endpointUrl rateLimitAlgorithm')
-      .populate('rateLimitAlgorithm', 'name description')
+      .select("_id name endpointUrl rateLimitAlgorithm")
+      .populate("rateLimitAlgorithm", "name description")
       .lean();
 
     return res.status(200).json({ registrations });
   } catch (err) {
-    console.error('Get Registrations error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error("Get Registrations error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 }
 
@@ -67,23 +72,23 @@ export async function getRegistrationById(req, res) {
 
     const registration = await Api.findOne({
       _id: id,
-      user: req.user._id
+      user: req.user._id,
     })
-      .populate('rateLimitAlgorithm', 'name description')
+      .populate("rateLimitAlgorithm", "name description")
       .lean();
 
     if (!registration) {
-      return res.status(404).json({ message: 'API registration not found or not owned by user' });
+      return res
+        .status(404)
+        .json({ message: "API registration not found or not owned by user" });
     }
 
     return res.status(200).json({ registration });
   } catch (err) {
-    console.error('Get Registration By ID error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error("Get Registration By ID error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 }
-
-
 
 export async function deleteRegistration(req, res) {
   try {
@@ -91,17 +96,19 @@ export async function deleteRegistration(req, res) {
 
     const deleted = await Api.findOneAndDelete({
       _id: id,
-      user: req.user._id
+      user: req.user._id,
     });
 
     if (!deleted) {
-      return res.status(404).json({ message: 'API not found or not owned by user' });
+      return res
+        .status(404)
+        .json({ message: "API not found or not owned by user" });
     }
 
-    return res.status(200).json({ message: 'API deleted successfully' });
+    return res.status(200).json({ message: "API deleted successfully" });
   } catch (err) {
-    console.error('Delete Registration error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error("Delete Registration error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 }
 
@@ -113,18 +120,24 @@ export async function updateRegistration(req, res) {
     // Check if API exists and belongs to user
     const existingApi = await Api.findOne({
       _id: id,
-      user: req.user._id
+      user: req.user._id,
     });
 
     if (!existingApi) {
-      return res.status(404).json({ message: 'API not found or not owned by user' });
+      return res
+        .status(404)
+        .json({ message: "API not found or not owned by user" });
     }
 
     // Validate algorithm if algorithmId is provided
     if (algorithmId) {
       const algorithm = await RateLimitAlgorithm.findById(algorithmId);
       if (!algorithm) {
-        return res.status(404).json({ message: 'Invalid algorithmId: Rate limiting algorithm not found' });
+        return res
+          .status(404)
+          .json({
+            message: "Invalid algorithmId: Rate limiting algorithm not found",
+          });
       }
     }
 
@@ -133,11 +146,13 @@ export async function updateRegistration(req, res) {
       const conflictingApi = await Api.findOne({
         user: req.user._id,
         endpointUrl: apiUrl,
-        _id: { $ne: id } // Exclude current API from check
+        _id: { $ne: id }, // Exclude current API from check
       });
 
       if (conflictingApi) {
-        return res.status(409).json({ message: 'API URL already registered by this user' });
+        return res
+          .status(409)
+          .json({ message: "API URL already registered by this user" });
       }
     }
 
@@ -148,18 +163,16 @@ export async function updateRegistration(req, res) {
     if (algorithmId) updateData.rateLimitAlgorithm = algorithmId;
     if (config !== undefined) updateData.config = config;
 
-    const updatedApi = await Api.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    ).populate('rateLimitAlgorithm', 'name description');
+    const updatedApi = await Api.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("rateLimitAlgorithm", "name description");
 
-    return res.status(200).json({ 
-      message: 'API updated successfully'
+    return res.status(200).json({
+      message: "API updated successfully",
     });
-
   } catch (err) {
-    console.error('Update Registration error:', err);
-    return res.status(500).json({ message: 'Server error' });
+    console.error("Update Registration error:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 }
