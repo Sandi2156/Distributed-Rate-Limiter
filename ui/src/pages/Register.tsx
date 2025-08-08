@@ -55,7 +55,7 @@ export default function Register() {
     setIsLoading(true);
     try {
       const { email, password } = data;
-      const response = await authService.register({ email, password });
+      await authService.register({ email, password });
       navigate("/login");
     } catch (error: any) {
       console.error("Registration error:", error);

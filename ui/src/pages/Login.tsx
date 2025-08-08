@@ -46,7 +46,7 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await authService.login(data);
+      await authService.login(data);
       navigate("/home");
     } catch (error: any) {
       console.error("Login error:", error);
