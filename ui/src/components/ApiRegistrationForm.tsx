@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 import {
   Dialog,
   DialogContent,
@@ -12,25 +12,35 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { algorithmService, type Algorithm, type AlgorithmResponse } from '@/services/algorithmService';
-import type { CreateApiRequest, ApiRegistration } from '@/services/apiService';
-import { Loader2 } from 'lucide-react';
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { algorithmService, type Algorithm } from "@/services/algorithmService";
+import type { CreateApiRequest, ApiRegistration } from "@/services/apiService";
+import { Loader2 } from "lucide-react";
 
 const apiSchema = z.object({
-  name: z.string().min(1, 'API name is required'),
-  apiUrl: z.string().url('Please enter a valid URL'),
-  algorithmId: z.string().min(1, 'Please select an algorithm'),
-  windowSeconds: z.number().min(1, 'Window time must be at least 1 second').optional(),
-  requests: z.number().min(1, 'Requests must be at least 1').optional(),
+  name: z.string().min(1, "API name is required"),
+  apiUrl: z.string().url("Please enter a valid URL"),
+  algorithmId: z.string().min(1, "Please select an algorithm"),
+  windowSeconds: z
+    .number()
+    .min(1, "Window time must be at least 1 second")
+    .optional(),
+  requests: z.number().min(1, "Requests must be at least 1").optional(),
 });
 
 type ApiFormData = z.infer<typeof apiSchema>;
@@ -43,10 +53,18 @@ interface ApiRegistrationFormProps {
   editingApi?: ApiRegistration;
 }
 
-export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLoading = false, editingApi }: ApiRegistrationFormProps) {
+export default function ApiRegistrationForm({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading = false,
+  editingApi,
+}: ApiRegistrationFormProps) {
   const [algorithms, setAlgorithms] = useState<Algorithm[]>();
   const [isLoadingAlgorithms, setIsLoadingAlgorithms] = useState(false);
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState<Algorithm | undefined>();
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<
+    Algorithm | undefined
+  >();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch algorithms when dialog opens
@@ -62,7 +80,7 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
       const data = await algorithmService.getAlgorithms();
       setAlgorithms(data.algorithms);
     } catch (error) {
-      console.error('Failed to fetch algorithms:', error);
+      console.error("Failed to fetch algorithms:", error);
     } finally {
       setIsLoadingAlgorithms(false);
     }
@@ -71,9 +89,9 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
   const form = useForm<ApiFormData>({
     resolver: zodResolver(apiSchema),
     defaultValues: {
-      name: '',
-      apiUrl: '',
-      algorithmId: '',
+      name: "",
+      apiUrl: "",
+      algorithmId: "",
       windowSeconds: 60,
       requests: 100,
     },
@@ -97,7 +115,7 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
       setSelectedAlgorithm({
         _id: editingApi.rateLimitAlgorithm._id,
         name: editingApi.rateLimitAlgorithm.name,
-        description: editingApi.rateLimitAlgorithm.description || '',
+        description: editingApi.rateLimitAlgorithm.description || "",
       });
     }
   }, [open, form, editingApi]);
@@ -110,9 +128,9 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
   }, [selectedAlgorithm, form]);
 
   const handleAlgorithmChange = (algorithmId: string) => {
-    const algorithm = algorithms?.find(alg => alg._id === algorithmId);
+    const algorithm = algorithms?.find((alg) => alg._id === algorithmId);
     setSelectedAlgorithm(algorithm);
-    form.setValue('algorithmId', algorithmId);
+    form.setValue("algorithmId", algorithmId);
   };
 
   const handleSubmit = async (data: ApiFormData) => {
@@ -122,7 +140,7 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
       const config: Record<string, any> = {};
       if (data.windowSeconds) config.windowSeconds = data.windowSeconds;
       if (data.requests) config.requests = data.requests;
-      
+
       await onSubmit({
         name: data.name,
         apiUrl: data.apiUrl,
@@ -131,7 +149,7 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
       });
       onOpenChange(false);
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error("Form submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -154,7 +172,9 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
                   type="number"
                   placeholder="60"
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    field.onChange(parseInt(e.target.value) || 0)
+                  }
                 />
               </FormControl>
               <FormMessage />
@@ -172,7 +192,9 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
                   type="number"
                   placeholder="100"
                   {...field}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                  onChange={(e) =>
+                    field.onChange(parseInt(e.target.value) || 0)
+                  }
                 />
               </FormControl>
               <FormMessage />
@@ -187,12 +209,16 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{editingApi ? 'Edit API' : 'Register New API'}</DialogTitle>
+          <DialogTitle>
+            {editingApi ? "Edit API" : "Register New API"}
+          </DialogTitle>
           <DialogDescription>
-            {editingApi ? 'Update your API registration details.' : 'Register a new API with rate limiting configuration.'}
+            {editingApi
+              ? "Update your API registration details."
+              : "Register a new API with rate limiting configuration."}
           </DialogDescription>
         </DialogHeader>
-        
+
         {isLoadingAlgorithms ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
@@ -202,7 +228,10 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -224,7 +253,10 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
                   <FormItem>
                     <FormLabel>API URL</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://api.example.com/endpoint" {...field} />
+                      <Input
+                        placeholder="https://api.example.com/endpoint"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -237,7 +269,10 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rate Limiting Algorithm</FormLabel>
-                    <Select onValueChange={handleAlgorithmChange} value={field.value}>
+                    <Select
+                      onValueChange={handleAlgorithmChange}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select an algorithm" />
@@ -263,7 +298,9 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
                       Configuration for {selectedAlgorithm.name}
                     </h4>
                     {selectedAlgorithm.description && (
-                      <p className="text-sm text-gray-600 mb-4">{selectedAlgorithm.description}</p>
+                      <p className="text-sm text-gray-600 mb-4">
+                        {selectedAlgorithm.description}
+                      </p>
                     )}
                     {renderConfigFields()}
                   </div>
@@ -271,11 +308,21 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
               )}
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting || isLoading}>
-                  {isSubmitting ? (editingApi ? 'Updating...' : 'Registering...') : (editingApi ? 'Update API' : 'Register API')}
+                  {isSubmitting
+                    ? editingApi
+                      ? "Updating..."
+                      : "Registering..."
+                    : editingApi
+                    ? "Update API"
+                    : "Register API"}
                 </Button>
               </DialogFooter>
             </form>
@@ -284,4 +331,4 @@ export default function ApiRegistrationForm({ open, onOpenChange, onSubmit, isLo
       </DialogContent>
     </Dialog>
   );
-} 
+}
