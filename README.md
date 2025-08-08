@@ -6,6 +6,7 @@ A scalable distributed rate limiter for managing API request limits across multi
 
 - [Setup](#setup)
 - [Environment Variables](#environment-variables)
+- [Important Commands](#important-commands)
 
 ## Setup
 
@@ -40,4 +41,18 @@ JWT_SECRET=''
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000
+```
+
+## Important Commands
+
+### Lambda Commands
+
+```cli
+aws lambda update-function-configuration \
+  --function-name my-function \
+  --environment "Variables={BUCKET=amzn-s3-demo-bucket,KEY=file.txt}"
+
+aws lambda update-function-configuration \
+  --function-name my-function \
+  --environment "Variables={BUCKET=amzn-s3-demo-bucket,KEY=file.txt}"
 ```
