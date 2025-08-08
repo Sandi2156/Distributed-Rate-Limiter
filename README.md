@@ -6,7 +6,6 @@ A scalable distributed rate limiter for managing API request limits across multi
 
 - [Setup](#setup)
 - [Environment Variables](#environment-variables)
-- [Deployment](#deployment)
 
 ## Setup
 
