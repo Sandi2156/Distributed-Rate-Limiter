@@ -1,6 +1,7 @@
 import app from "./server.js";
 import serverLessExpress from "@vendia/serverless-express";
 import { connectMongo } from "./src/models/db.js";
+import config from "./src/utils/config.js";
 
 let serverlessExpressInstance;
 
