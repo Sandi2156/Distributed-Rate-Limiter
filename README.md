@@ -7,6 +7,7 @@ A scalable distributed rate limiter for managing API request limits across multi
 - [Setup](#setup)
 - [Environment Variables](#environment-variables)
 - [Important Commands](#important-commands)
+- [Tech Stack used for Deployment](#tech-stack-used-for-deployment)
 
 ## Setup
 
@@ -56,3 +57,23 @@ aws lambda update-function-configuration \
   --function-name my-function \
   --environment "Variables={BUCKET=amzn-s3-demo-bucket,KEY=file.txt}"
 ```
+
+## Tech Stack used for Deployment
+
+1. UI
+
+- Stored static files in AWS S3
+- Integrated with Route 53 to enable custom domain
+
+2. API
+
+- Deployed on AWS Lambda
+- Routed using AWS Gateway
+
+3. MongoDB
+
+- MongoDB Atlas Free Cluster
+
+4. Redis
+
+- Free version in [Aiven](https://console.aiven.io/)

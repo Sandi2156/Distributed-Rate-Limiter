@@ -5,15 +5,22 @@ import axios from "axios";
 
 export async function handleProxy(req, res) {
   try {
-    const { targetUrl, targetUrlBody, targetUrlHeaders } = req.body;
+    const { targetUrl, targetUrlBody, targetUrlHeaders, method } = req.body;
 
+    const validMethods = ["GET", "POST", "PUT", "DELETE", "PATCH"];
     if (!targetUrl) {
       return res.status(400).json({ message: "targetUrl is required" });
+    }
+    if (!validMethods.includes(method.toUpperCase())) {
+      return res.status(400).json({
+        message: `Invalid method. Allowed methods: ${validMethods.join(", ")}`,
+      });
     }
 
     const api = await Api.findOne({
       user: req.user._id,
       endpointUrl: targetUrl,
+      method,
     }).populate("rateLimitAlgorithm");
 
     if (!api) {
@@ -29,9 +36,20 @@ export async function handleProxy(req, res) {
 
     // Forward the request
     // TODO: Add a way to dynamically select the method (GET, POST, PUT, DELETE)
-    const forwardRes = await axios.post(targetUrl, targetUrlBody, {
-      headers: targetUrlHeaders || {},
-    });
+    const axiosConfig = {
+      url: targetUrl,
+      method,
+      headers: targetUrlHeaders,
+    };
+    if (
+      method === "POST" ||
+      method === "PUT" ||
+      method === "DELETE" ||
+      method === "PATCH"
+    ) {
+      axiosConfig.data = targetUrlBody;
+    }
+    const forwardRes = await axios(axiosConfig);
 
     return res.status(forwardRes.status).json(forwardRes.data);
   } catch (err) {

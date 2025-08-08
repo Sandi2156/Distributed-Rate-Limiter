@@ -4,34 +4,48 @@ import { RateLimitAlgorithm } from "../models/algorithmModel.js";
 
 export async function registerApi(req, res) {
   try {
-    const { apiUrl, name, algorithmId, config } = req.body;
+    const { apiUrl, name, algorithmId, config, method } = req.body;
 
-    if (!apiUrl || !name || !algorithmId) {
-      return res
-        .status(400)
-        .json({ message: "apiUrl, name, and algorithmId are required" });
+    const validMethods = [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "PATCH",
+      "HEAD",
+      "OPTIONS",
+    ];
+    if (!apiUrl || !name || !algorithmId || !method) {
+      return res.status(400).json({
+        message: "apiUrl, name, algorithmId, and method are required",
+      });
+    }
+
+    if (!validMethods.includes(method.toUpperCase())) {
+      return res.status(400).json({
+        message: `Invalid method. Allowed methods: ${validMethods.join(", ")}`,
+      });
     }
 
     // Validate algorithm
     const algorithm = await RateLimitAlgorithm.findById(algorithmId);
     if (!algorithm) {
-      return res
-        .status(404)
-        .json({
-          message: "Invalid algorithmId: Rate limiting algorithm not found",
-        });
+      return res.status(404).json({
+        message: "Invalid algorithmId: Rate limiting algorithm not found",
+      });
     }
 
     // Check if API already registered by this user
     const existing = await Api.findOne({
       user: req.user._id,
       endpointUrl: apiUrl,
+      method: method.toUpperCase(),
     });
 
     if (existing) {
-      return res
-        .status(409)
-        .json({ message: "API already registered by this user" });
+      return res.status(409).json({
+        message: "API with this method already registered by this user",
+      });
     }
 
     // Register the API
@@ -41,6 +55,7 @@ export async function registerApi(req, res) {
       endpointUrl: apiUrl,
       rateLimitAlgorithm: algorithm._id,
       config: config || {},
+      method: method.toUpperCase(),
     });
 
     await api.save();
@@ -133,11 +148,9 @@ export async function updateRegistration(req, res) {
     if (algorithmId) {
       const algorithm = await RateLimitAlgorithm.findById(algorithmId);
       if (!algorithm) {
-        return res
-          .status(404)
-          .json({
-            message: "Invalid algorithmId: Rate limiting algorithm not found",
-          });
+        return res.status(404).json({
+          message: "Invalid algorithmId: Rate limiting algorithm not found",
+        });
       }
     }
 

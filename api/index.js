@@ -19,13 +19,15 @@ function handlerFn(event, context) {
   return setup(event, context);
 }
 
-// async function start() {
-//   await connectMongo(config.db.mongoUrl);
-//   app.listen(config.server.port, () => {
-//     console.log(`Server running on port ${config.server.port}`);
-//   });
-// }
+if (config.env === "localhost") {
+  async function start() {
+    await connectMongo(config.db.mongoUrl);
+    app.listen(config.server.port, () => {
+      console.log(`Server running on port ${config.server.port}`);
+    });
+  }
 
-// start();
+  await start();
+}
 
 export const handler = handlerFn;

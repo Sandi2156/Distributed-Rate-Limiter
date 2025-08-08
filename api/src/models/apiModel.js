@@ -1,10 +1,10 @@
 // models/Api.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const apiSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: "User",
     required: true,
   },
   name: {
@@ -15,9 +15,14 @@ const apiSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  method: {
+    type: String,
+    enum: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    required: true,
+  },
   rateLimitAlgorithm: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'RateLimitAlgorithm',
+    ref: "RateLimitAlgorithm",
   },
   config: {
     type: mongoose.Schema.Types.Mixed, // flexible for algorithm-specific settings
@@ -29,4 +34,4 @@ const apiSchema = new mongoose.Schema({
   },
 });
 
-export const Api = mongoose.model('Api', apiSchema);
+export const Api = mongoose.model("Api", apiSchema);
