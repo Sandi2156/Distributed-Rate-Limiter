@@ -1,32 +1,22 @@
-import express from "express";
-import authRouter from "./src/routes/authRoutes.js";
-import config from "./src/utils/config.js";
-import { connectMongo } from "./src/models/db.js";
-import apiRegistrationRoutes from "./src/routes/apiRegistrationRoutes.js";
-import algorithmRoutes from "./src/routes/algorithmRoutes.js";
-import proxyRoutes from "./src/routes/proxyRoutes.js";
-import cors from "cors";
+import app from "./server.js";
 import serverLessExpress from "@vendia/serverless-express";
+import { connectMongo } from "./src/models/db.js";
 
-const app = express();
-app.use(express.json());
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+let serverlessExpressInstance;
 
-app.use("/auth", authRouter);
-app.use("/api", apiRegistrationRoutes);
-app.use("/algorithms", algorithmRoutes);
-app.use("/proxy", proxyRoutes);
+async function setup(event, context) {
+  await connectMongo(config.db.mongoUrl);
 
-app.get("/ping", async (req, res) => {
-  res.json({ message: "pong" });
-});
+  serverlessExpressInstance = serverLessExpress({ app });
+  return serverlessExpressInstance(event, context);
+}
 
-connectMongo(config.db.mongoUrl);
+function handlerFn(event, context) {
+  if (serverlessExpressInstance)
+    return serverlessExpressInstance(event, context);
+
+  return setup(event, context);
+}
 
 // async function start() {
 //   await connectMongo(config.db.mongoUrl);
@@ -36,4 +26,5 @@ connectMongo(config.db.mongoUrl);
 // }
 
 // start();
-export const handler = serverlessExpress({ app });
+
+export const handler = handlerFn;
