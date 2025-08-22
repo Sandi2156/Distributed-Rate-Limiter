@@ -1,9 +1,8 @@
 // src/services/rateLimiterService.js
-import redisClient from '../utils/redisClient.js';
+import redisClient from "../utils/redisClient.js";
 
 // Token Bucket Algorithm
 export async function tokenBucketCheck(userId, apiId, config) {
-  
   const key = `ratelimit:token:${userId}:${apiId}`;
   const now = Math.floor(Date.now() / 1000);
   const refillRate = config.refillRate || 1; // tokens per second
@@ -20,7 +19,7 @@ export async function tokenBucketCheck(userId, apiId, config) {
     tokens -= 1;
     await redisClient.hSet(key, {
       tokens: tokens.toFixed(2),
-      lastRefill: now
+      lastRefill: now,
     });
     return true;
   }
@@ -30,7 +29,6 @@ export async function tokenBucketCheck(userId, apiId, config) {
 
 // Fixed Window Algorithm
 export async function fixedWindowCheck(userId, apiId, config) {
-
   const windowSeconds = config.windowSeconds || 60;
   const limit = config.requests || 10;
 
@@ -66,17 +64,48 @@ export async function slidingWindowCheck(userId, apiId, config) {
   return true;
 }
 
+// Leaky Bucket Algorithm
+export async function leakyBucketCheck(userId, apiId, config) {
+  const key = `ratelimit:leaky:${userId}:${apiId}`;
+  const now = Date.now();
+  const capacity = config.capacity || 10;
+  const leakRate = config.leakRate || 1; // requests processed per second
+
+  const data = await redisClient.hGetAll(key);
+  let lastProcessed = parseInt(data.lastProcessed) || now;
+  let water = parseInt(data.water) || 0;
+
+  // Calculate how much water has leaked since last check
+  const timeElapsed = (now - lastProcessed) / 1000; // convert to seconds
+  const leaked = Math.floor(timeElapsed * leakRate);
+  water = Math.max(0, water - leaked);
+
+  // Try to add new request to bucket
+  if (water < capacity) {
+    water += 1;
+    await redisClient.hSet(key, {
+      water: water,
+      lastProcessed: now,
+    });
+    return true;
+  }
+
+  return false;
+}
+
 // Central Rate Limit Dispatcher
 export async function rateLimitCheck(userId, api, config) {
   const algorithm = api.rateLimitAlgorithm?.name;
 
   switch (algorithm) {
-    case 'token_bucket':
+    case "token_bucket":
       return tokenBucketCheck(userId, api._id, config);
-    case 'fixed_window':
+    case "fixed_window":
       return fixedWindowCheck(userId, api._id, config);
-    case 'sliding_window':
+    case "sliding_window":
       return slidingWindowCheck(userId, api._id, config);
+    case "leaky_bucket":
+      return leakyBucketCheck(userId, api._id, config);
     default:
       return true; // Allow if algorithm not recognized
   }
